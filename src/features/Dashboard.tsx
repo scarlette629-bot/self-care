@@ -1,0 +1,381 @@
+import { CareReminderList } from "./Preventive";
+import { useState } from "react";
+import { useStore } from "../lib/store";
+import { useDefinitions } from "../data/useDefinitions";
+import { PageHeader } from "../components/health";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Activity, CloudOff, CalendarDays, Leaf, Plus } from "lucide-react";
+import { zhTW } from "date-fns/locale";
+import {
+  formatTaipei as format,
+  taipeiDay,
+  withinDays,
+  type Metric,
+} from "../lib/model";
+import { demoData } from "../data/repository";
+import {
+  BadgeIcon,
+  Empty,
+  Modal,
+  SectionTitle,
+  ArrowRight,
+  ChevronRight,
+} from "../components/ui";
+import { MetricCard, date } from "../components/health";
+import { RecordForm } from "../components/Forms";
+import { TrendChart } from "../components/TrendChart";
+import { MetricPicker } from "../components/MetricPicker";
+export function Dashboard() {
+  const { data, commit } = useStore();
+  const defs = useDefinitions();
+  const navigate = useNavigate();
+  const [record, setRecord] = useState<Metric>();
+  const [picker, setPicker] = useState(false);
+  const [seed, setSeed] = useState(false);
+  const [period, setPeriod] = useState(7);
+  const today = data.records.filter(
+    (r) => taipeiDay(r.at) === taipeiDay(new Date()),
+  ).length;
+  const pending = data.reminders
+    .filter((r) => !r.done)
+    .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+  const visible = defs
+    .filter(
+      (m) => m.group === "日常健康" && !data.settings.hidden.includes(m.id),
+    )
+    .slice(0, 4);
+  const trendRows = withinDays(
+    data.records.filter((r) => r.metricId === "bp"),
+    period,
+  );
+  return (
+    <>
+      <PageHeader
+        title={`${data.settings.nickname}，今天也好好照顧自己。`}
+        sub={format(new Date(), "yyyy 年 M 月 d 日 EEEE", { locale: zhTW })}
+        action={
+          <button className="button" onClick={() => setPicker(true)}>
+            <Plus size={19} />
+            新增紀錄
+          </button>
+        }
+      />
+      <section className="mobile-quick-section" aria-label="快速記錄">
+        <SectionTitle
+          title="快速記錄"
+          action={
+            <button className="text-button" onClick={() => setPicker(true)}>
+              更多指標
+              <ChevronRight size={18} />
+            </button>
+          }
+        />
+        <div className="quick-metrics">
+          {["bp", "glucose", "weight", "sleep"].map((id) => {
+            const m = defs.find((x) => x.id === id)!;
+            return (
+              <button
+                key={id}
+                onClick={() => setRecord(m)}
+                aria-label={`快速記錄${m.name}`}
+              >
+                <BadgeIcon name={m.icon} color={m.color} />
+                <span>{m.name}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="mobile-module-shortcuts">
+          <NavLink to="/labs">
+            <BadgeIcon name="test" />
+            檢驗數據
+          </NavLink>
+          <NavLink to="/women">
+            <BadgeIcon name="flower" color="#b57999" />
+            女性健康
+          </NavLink>
+          <NavLink to="/aging">
+            <BadgeIcon name="leaf" color="#6a9975" />
+            健康老化
+          </NavLink>
+          <NavLink to="/preventive">
+            <BadgeIcon name="calendar" color="#b28b41" />
+            預防保健
+          </NavLink>
+        </div>
+      </section>
+      <div className="demo-banner">
+        <span>
+          <CloudOff size={16} />
+          <b>Demo Mode</b> · 資料僅存在此瀏覽器，未同步至雲端
+        </span>
+        <button onClick={() => setSeed(true)}>
+          載入範例資料
+          <ArrowRight size={15} />
+        </button>
+      </div>
+      <section className="hero">
+        <div className="hero-copy">
+          <span className="hero-kicker">
+            <span />
+            今日健康摘要
+          </span>
+          <h2>
+            照顧自己，
+            <br />
+            從每一筆<span>紀錄</span>開始。
+          </h2>
+          <p>讓日常的小小紀錄，成為了解自己的線索。</p>
+          <button className="hero-link" onClick={() => navigate("/data")}>
+            開始記錄今天的健康
+            <ArrowRight size={18} />
+          </button>
+        </div>
+        <div className="hero-art" aria-hidden="true">
+          <span className="halo halo-one" />
+          <span className="halo halo-two" />
+          <div className="health-cross">
+            <span />
+            <i />
+          </div>
+          <Leaf className="hero-leaf" size={100} strokeWidth={1} />
+          <div className="art-heart">
+            <Activity size={42} />
+          </div>
+        </div>
+        <div className="today-progress">
+          <div className="progress-ring">
+            <b>{today}</b>
+            <span>筆紀錄</span>
+          </div>
+          <span>今日已記錄</span>
+          <small>一點一滴，累積健康日常</small>
+        </div>
+      </section>
+      <div className="dashboard-grid">
+        <div className="dashboard-primary">
+          <SectionTitle
+            title="我的健康數據"
+            eyebrow="DAILY HEALTH"
+            action={
+              <button className="text-button" onClick={() => navigate("/data")}>
+                查看全部
+                <ChevronRight size={16} />
+              </button>
+            }
+          />
+          <div className="metrics-grid">
+            {visible.map((m) => (
+              <MetricCard
+                key={m.id}
+                m={m}
+                open={() => setRecord(m)}
+                detail={() => navigate(`/data?metric=${m.id}`)}
+              />
+            ))}
+          </div>
+          {!visible.length && (
+            <Empty
+              title="首頁指標已隱藏"
+              action={<NavLink to="/profile">設定顯示指標</NavLink>}
+            />
+          )}
+          <section className="panel trend-panel">
+            <SectionTitle
+              title="看見健康的變化"
+              eyebrow="HEALTH TRENDS"
+              action={
+                <button
+                  className="text-button"
+                  onClick={() => navigate("/trends")}
+                >
+                  完整趨勢
+                  <ArrowRight size={16} />
+                </button>
+              }
+            />
+            <div className="trend-toolbar">
+              <span className="chart-name">
+                <BadgeIcon name="stethoscope" color="#dd647b" />
+                <span>
+                  <b>血壓趨勢</b>
+                  <small>共 {trendRows.length} 筆紀錄 · mmHg</small>
+                </span>
+              </span>
+              <div className="segmented">
+                {[7, 30, 90].map((n) => (
+                  <button
+                    key={n}
+                    className={period === n ? "active" : ""}
+                    onClick={() => setPeriod(n)}
+                  >
+                    {n} 天
+                  </button>
+                ))}
+              </div>
+            </div>
+            <TrendChart rows={trendRows} definitions={[defs[0]]} height={220} />
+          </section>
+        </div>
+        <div className="dashboard-secondary">
+          <section className="panel next-panel">
+            <SectionTitle
+              title="接下來要做的事"
+              eyebrow="A LITTLE CARE, EVERY DAY"
+              action={
+                <NavLink
+                  to="/reminders"
+                  className="icon-button"
+                  aria-label="全部提醒"
+                >
+                  <ArrowRight size={18} />
+                </NavLink>
+              }
+            />
+            <div className="reminder-summary">
+              <span>
+                <CalendarDays size={17} />
+                近期安排
+              </span>
+              <b>
+                {pending.length}
+                <small> 項待完成</small>
+              </b>
+            </div>
+            {pending.length ? (
+              pending.slice(0, 3).map((r) => (
+                <div className="task" key={r.id}>
+                  <button
+                    className="check-circle"
+                    aria-label={`完成${r.name}`}
+                    onClick={() =>
+                      void commit((b) => ({
+                        ...b,
+                        reminders: b.reminders.map((x) =>
+                          x.id === r.id
+                            ? {
+                                ...x,
+                                done: true,
+                                completedAt: new Date().toISOString(),
+                              }
+                            : x,
+                        ),
+                      })).catch(() => {})
+                    }
+                  />
+                  <div>
+                    <strong>{r.name}</strong>
+                    <small>
+                      {date(r.at)} · {r.category}
+                    </small>
+                  </div>
+                  <span className="task-dot" />
+                </div>
+              ))
+            ) : (
+              <div className="quiet-empty">
+                目前沒有待辦事項
+                <br />
+                <small>給下一次照顧自己，一個提醒。</small>
+              </div>
+            )}
+            <button
+              className="button secondary full"
+              onClick={() => navigate("/reminders")}
+            >
+              <Plus size={17} />
+              管理我的提醒
+            </button>
+          </section>
+          <CareReminderList limit={3} />
+          <section className="panel modules-panel">
+            <SectionTitle title="我的健康空間" eyebrow="MORE WAYS TO CARE" />
+            {[
+              {
+                to: "/women",
+                title: "女性健康",
+                sub: "週期、症狀與偏頭痛紀錄",
+                icon: "flower",
+                color: "#b57999",
+              },
+              {
+                to: "/aging",
+                title: "健康老化",
+                sub: "營養、活動與日常功能",
+                icon: "leaf",
+                color: "#6a9975",
+              },
+              {
+                to: "/preventive",
+                title: "預防保健",
+                sub: "為下一次健康檢查做準備",
+                icon: "calendar",
+                color: "#c99b50",
+              },
+            ].map((m) => (
+              <NavLink key={m.to} to={m.to} className="module-link">
+                <BadgeIcon name={m.icon} color={m.color} />
+                <span>
+                  <strong>{m.title}</strong>
+                  <small>{m.sub}</small>
+                </span>
+                <ChevronRight size={17} />
+              </NavLink>
+            ))}
+          </section>
+          <div className="daily-note">
+            <span>SELF-CARE NOTE</span>
+            <p>
+              健康，不是一天的努力。
+              <br />
+              是每天願意多照顧自己一點。
+            </p>
+            <Leaf size={23} />
+          </div>
+        </div>
+      </div>
+      {picker && (
+        <MetricPicker
+          definitions={defs}
+          close={() => setPicker(false)}
+          choose={(m) => {
+            setPicker(false);
+            setRecord(m);
+          }}
+        />
+      )}
+      {record && (
+        <RecordForm metric={record} close={() => setRecord(undefined)} />
+      )}{" "}
+      {seed && (
+        <Modal title="載入示範資料" close={() => setSeed(false)}>
+          <p>
+            會加入標示為範例的健康數據與提醒。既有紀錄保留，示範數據不代表你的健康狀態。
+          </p>
+          <div className="form-actions">
+            <button className="button secondary" onClick={() => setSeed(false)}>
+              取消
+            </button>
+            <button
+              className="button"
+              onClick={() =>
+                void commit((b) => {
+                  const d = demoData();
+                  return {
+                    ...b,
+                    records: [...b.records, ...d.records],
+                    reminders: [...b.reminders, ...d.reminders],
+                  };
+                })
+                  .then(() => setSeed(false))
+                  .catch(() => {})
+              }
+            >
+              加入範例資料
+            </button>
+          </div>
+        </Modal>
+      )}
+    </>
+  );
+}

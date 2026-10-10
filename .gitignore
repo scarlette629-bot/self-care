@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.env.local
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+.env.*
+!.env.example
+.DS_Store
+*.zip
+*.png
+!public/*.png
+SELF-CARE-encrypted*.json
