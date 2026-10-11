@@ -120,3 +120,8 @@ PWA 人工驗收：正式 build 預覽 → 確認 Application 面板的 Manifest
 ## 隱私取捨
 
 本機資料未加密。相同裝置、相同瀏覽器設定檔可能存取全部 Demo 資料；不存在多帳號隔離。沒有第三方 analytics。瀏覽器清除資料會失去紀錄，請自行備份。本產品不提供診斷，不以範例數值作醫療建議。
+
+## 使用手冊 / User guides
+
+- [繁體中文](https://scarlette629-bot.github.io/self-care/manual/zh-TW.html)
+- [English](https://scarlette629-bot.github.io/self-care/manual/en.html)
