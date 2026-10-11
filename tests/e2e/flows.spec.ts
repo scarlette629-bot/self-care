@@ -1,3 +1,4 @@
+import { demoData } from "../../src/data/repository";
 import { test, expect } from "@playwright/test";
 test("新增、編輯、重新整理、趨勢、時間軸與刪除保持一致", async ({ page }) => {
   await page.goto("/");
@@ -91,9 +92,11 @@ test("PWA manifest、service worker 與離線新增", async ({ page, context }) 
 });
 test("範例載入、血脂比較與響應式預覽", async ({ page }, testInfo) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "載入範例資料" }).click();
-  await page.getByRole("button", { name: "加入範例資料" }).click();
+  await page.goto("/profile");
+  await page.locator("input.file-input").setInputFiles({name:"fixture.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(demoData()))});
+  await page.getByRole("button", { name: "確認", exact:true }).click();
   await expect(page.getByRole("dialog")).not.toBeVisible();
+  await page.goto("/");
   await expect(page.getByText("118 / 76", { exact: true })).toBeVisible();
   await page.screenshot({
     path: `preview-${testInfo.project.name}.png`,

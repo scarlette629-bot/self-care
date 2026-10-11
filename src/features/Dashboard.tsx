@@ -4,7 +4,7 @@ import { useStore } from "../lib/store";
 import { useDefinitions } from "../data/useDefinitions";
 import { PageHeader } from "../components/health";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Activity, CloudOff, CalendarDays, Leaf, Plus } from "lucide-react";
+import { Activity, CalendarDays, Leaf, Plus } from "lucide-react";
 import { zhTW } from "date-fns/locale";
 import {
   formatTaipei as format,
@@ -12,11 +12,9 @@ import {
   withinDays,
   type Metric,
 } from "../lib/model";
-import { demoData } from "../data/repository";
 import {
   BadgeIcon,
   Empty,
-  Modal,
   SectionTitle,
   ArrowRight,
   ChevronRight,
@@ -31,7 +29,6 @@ export function Dashboard() {
   const navigate = useNavigate();
   const [record, setRecord] = useState<Metric>();
   const [picker, setPicker] = useState(false);
-  const [seed, setSeed] = useState(false);
   const [period, setPeriod] = useState(7);
   const today = data.records.filter(
     (r) => taipeiDay(r.at) === taipeiDay(new Date()),
@@ -104,16 +101,6 @@ export function Dashboard() {
           </NavLink>
         </div>
       </section>
-      <div className="demo-banner">
-        <span>
-          <CloudOff size={16} />
-          <b>Demo Mode</b> · 資料僅存在此瀏覽器，未同步至雲端
-        </span>
-        <button onClick={() => setSeed(true)}>
-          載入範例資料
-          <ArrowRight size={15} />
-        </button>
-      </div>
       <section className="hero">
         <div className="hero-copy">
           <span className="hero-kicker">
@@ -347,35 +334,6 @@ export function Dashboard() {
       {record && (
         <RecordForm metric={record} close={() => setRecord(undefined)} />
       )}{" "}
-      {seed && (
-        <Modal title="載入示範資料" close={() => setSeed(false)}>
-          <p>
-            會加入標示為範例的健康數據與提醒。既有紀錄保留，示範數據不代表你的健康狀態。
-          </p>
-          <div className="form-actions">
-            <button className="button secondary" onClick={() => setSeed(false)}>
-              取消
-            </button>
-            <button
-              className="button"
-              onClick={() =>
-                void commit((b) => {
-                  const d = demoData();
-                  return {
-                    ...b,
-                    records: [...b.records, ...d.records],
-                    reminders: [...b.reminders, ...d.reminders],
-                  };
-                })
-                  .then(() => setSeed(false))
-                  .catch(() => {})
-              }
-            >
-              加入範例資料
-            </button>
-          </div>
-        </Modal>
-      )}
     </>
   );
 }

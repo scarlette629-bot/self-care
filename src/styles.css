@@ -3557,3 +3557,6 @@ dialog > p {
   .mobile-brand-name { font-size: 14px; }
   .topbar-tools { flex-shrink: 0; }
 }
+
+.update-check-status {display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:var(--soft);color:var(--teal);font-size:14px;}
+@media(max-width:370px){.topbar .mobile-brand-name{font-size:12px;letter-spacing:0}.header-version{margin-right:0}}

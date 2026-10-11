@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { NavLink, Route, Routes, useLocation } from "react-router-dom";
 import {
   Activity,
+  RefreshCw,
   Bell,
   CalendarDays,
   CloudOff,
@@ -58,11 +59,39 @@ function App() {
   const { data, ready, error, init, commit } = useStore();
   const [menu, setMenu] = useState(false);
   const [offline, setOffline] = useState(!navigator.onLine);
+  const [updateMessage, setUpdateMessage] = useState("");
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [installGuide, setInstallGuide] = useState(false);
   const {
     needRefresh: [needRefresh],
     updateServiceWorker,
   } = useRegisterSW();
+  async function checkUpdate() {
+    if (checkingUpdate) return;
+    setCheckingUpdate(true);
+    setUpdateMessage("正在檢查更新…");
+    try {
+      if (!navigator.onLine) throw new Error("請連上網路後再檢查更新。");
+      if (!("serviceWorker" in navigator)) throw new Error("此瀏覽器不支援 App 更新。");
+      const registration = await navigator.serviceWorker.getRegistration(import.meta.env.BASE_URL);
+      if (!registration) throw new Error("更新服務尚未就緒，請稍後再試。");
+      await registration.update();
+      const worker = registration.installing;
+      if (worker) await new Promise<void>((resolve, reject) => {
+        const finish = () => {
+          if (worker.state === "installed" || worker.state === "activated") { cleanup(); resolve(); }
+          else if (worker.state === "redundant") { cleanup(); reject(new Error("下載更新失敗，請稍後重試。")); }
+        };
+        const timeout = window.setTimeout(() => { cleanup(); reject(new Error("檢查逾時，請稍後重試。")); }, 20000);
+        const cleanup = () => { window.clearTimeout(timeout); worker.removeEventListener("statechange", finish); };
+        worker.addEventListener("statechange", finish);
+        finish();
+      });
+      setUpdateMessage(registration.waiting ? "新版本已就緒。請先儲存正在填寫的資料，再更新 App。" : "目前已是最新版。");
+    } catch (e) {
+      setUpdateMessage(e instanceof Error ? e.message : "無法檢查更新，請稍後再試。");
+    } finally { setCheckingUpdate(false); }
+  }
   useEffect(() => {
     void init();
   }, [init]);
@@ -171,6 +200,7 @@ function App() {
           </div>
           <div className="topbar-tools">
             <span className="header-version" aria-label="軟體版本">版本{APP_VERSION}</span>
+            {mobile && <button className="icon-button" aria-label="檢查 App 更新" title="檢查更新" disabled={checkingUpdate} onClick={() => void checkUpdate()}><RefreshCw size={18} /></button>}
             <span className="local-state">
               <CloudOff size={16} />
               本機 Demo
@@ -218,6 +248,11 @@ function App() {
             </NavLink>
           </div>
         </header>
+        {updateMessage && <div className="update-check-status" role="status">
+          <span>{updateMessage}</span>
+          {needRefresh && <button className="text-button" onClick={() => void updateServiceWorker(true)}>更新 App</button>}
+          {!checkingUpdate && <button className="text-button" aria-label="關閉更新訊息" onClick={() => setUpdateMessage("")}>關閉</button>}
+        </div>}
         {offline && (
           <div className="status-banner">
             <WifiOff size={16} />

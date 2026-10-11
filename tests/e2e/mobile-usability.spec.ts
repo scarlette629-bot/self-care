@@ -1,3 +1,4 @@
+import { demoData } from "../../src/data/repository";
 import { test, expect } from "@playwright/test";
 test("手機快速記錄、抽屜表單與大字模式", async ({ page }, info) => {
   test.skip(info.project.name !== "mobile", "手機互動檢查");
@@ -67,9 +68,11 @@ test("手機快速記錄、抽屜表單與大字模式", async ({ page }, info) 
 test("手機觸控尺寸、單欄卡片與主要畫面預覽", async ({ page }, info) => {
   test.skip(info.project.name !== "mobile", "手機排版檢查");
   await page.goto("/");
-  await page.getByRole("button", { name: "載入範例資料" }).click();
-  await page.getByRole("button", { name: "加入範例資料" }).click();
+  await page.goto("/profile");
+  await page.locator("input.file-input").setInputFiles({name:"fixture.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(demoData()))});
+  await page.getByRole("button", { name: "確認", exact:true }).click();
   await expect(page.getByRole("dialog")).not.toBeVisible();
+  await page.goto("/");
   for (const name of ["快速記錄血壓", "新增血壓"]) {
     const box = await page
       .getByRole("button", { name, exact: true })

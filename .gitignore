@@ -13,3 +13,6 @@ test-results/
 *.png
 !public/*.png
 SELF-CARE-encrypted*.json
+
+dist-release/
+dist-upgrade/
