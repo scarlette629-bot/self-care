@@ -1,0 +1,35 @@
+import {test,expect} from '@playwright/test';
+test('套用上下限、修改保存與下次沿用',async({page})=>{
+ await page.goto('/labs?metric=sodium');
+ await page.getByRole('button',{name:'新增紀錄',exact:true}).click();
+ await page.getByRole('spinbutton',{name:'數值（mmol/L）'}).fill('140');
+ await page.getByRole('button',{name:'套用參考值',exact:true}).click();
+ await expect(page.getByRole('button',{name:'確認帶入'})).toBeDisabled();
+ await page.getByLabel('參考值適用條件').selectOption('0');
+ await page.getByRole('button',{name:'確認帶入'}).click();
+ await expect(page.getByLabel('報告參考下限')).toHaveValue('136');
+ await expect(page.getByLabel('報告參考上限')).toHaveValue('145');
+ await expect(page.getByRole('spinbutton',{name:'數值（mmol/L）'})).toHaveValue('140');
+ await page.getByLabel('報告參考上限').fill('144');
+ await page.getByRole('button',{name:'儲存紀錄'}).click();
+ await expect(page.getByRole('dialog')).not.toBeVisible();
+ await page.reload();
+ await page.getByRole('button',{name:'新增紀錄',exact:true}).click();
+ await expect(page.getByLabel('報告參考上限')).toHaveValue('144');
+});
+test('性別先選擇；判定門檻不當作閉區間套入',async({page})=>{
+ await page.goto('/labs?metric=hb');
+ await page.getByRole('button',{name:'新增紀錄',exact:true}).click();
+ await page.getByRole('button',{name:'套用參考值',exact:true}).click();
+ await page.getByLabel('參考值適用條件').selectOption('1');
+ await page.getByRole('button',{name:'確認帶入'}).click();
+ await expect(page.getByLabel('報告參考下限')).toHaveValue('13.1');
+ await expect(page.getByLabel('報告參考上限')).toHaveValue('17.2');
+ await page.getByRole('button',{name:'取消',exact:true}).click();
+ await page.goto('/labs?metric=hba1c');
+ await page.getByRole('button',{name:'新增紀錄',exact:true}).click();
+ await page.getByLabel('報告參考上限').fill('6');
+ await page.getByRole('button',{name:'套用參考值',exact:true}).click();
+ await expect(page.getByText(/此項目尚無可直接套用/)).toBeVisible();
+ await expect(page.getByLabel('報告參考上限')).toHaveValue('6');
+});

@@ -1,0 +1,209 @@
+{
+  "sodium": {
+    "unit": "mmol/L",
+    "options": [
+      {
+        "label": "CSV 參考區間",
+        "low": 136.0,
+        "high": 145.0
+      }
+    ],
+    "note": "",
+    "source": "台大醫院"
+  },
+  "potassium": {
+    "unit": "mmol/L",
+    "options": [
+      {
+        "label": "CSV 參考區間",
+        "low": 3.5,
+        "high": 5.1
+      }
+    ],
+    "note": "",
+    "source": "台大醫院"
+  },
+  "chloride": {
+    "unit": "mmol/L",
+    "options": [
+      {
+        "label": "CSV 參考區間",
+        "low": 98.0,
+        "high": 107.0
+      }
+    ],
+    "note": "",
+    "source": "台大醫院"
+  },
+  "calcium": {
+    "unit": "mg/dL",
+    "options": [
+      {
+        "label": "CSV 參考區間",
+        "low": 8.6,
+        "high": 10.3
+      }
+    ],
+    "note": "台大2.15-2.58 mmol/L,×4.008換算mg/dL",
+    "source": "台大醫院"
+  },
+  "albumin": {
+    "unit": "g/dL",
+    "options": [
+      {
+        "label": "CSV 參考區間",
+        "low": 3.5,
+        "high": 5.7
+      }
+    ],
+    "note": "",
+    "source": "台大醫院"
+  },
+  "ast": {
+    "unit": "U/L",
+    "options": [
+      {
+        "label": "CSV 參考區間",
+        "low": 8.0,
+        "high": 31.0
+      }
+    ],
+    "note": "",
+    "source": "台大醫院"
+  },
+  "alt": {
+    "unit": "U/L",
+    "options": [
+      {
+        "label": "CSV 參考區間",
+        "low": 0.0,
+        "high": 41.0
+      }
+    ],
+    "note": "",
+    "source": "台大醫院"
+  },
+  "bil": {
+    "unit": "mg/dL",
+    "options": [
+      {
+        "label": "CSV 參考區間",
+        "low": 0.3,
+        "high": 1.0
+      }
+    ],
+    "note": "",
+    "source": "台大醫院"
+  },
+  "creatinine": {
+    "unit": "mg/dL",
+    "options": [
+      {
+        "label": "CSV 參考區間",
+        "low": 0.6,
+        "high": 1.3
+      }
+    ],
+    "note": "",
+    "source": "台大醫院"
+  },
+  "bun": {
+    "unit": "mg/dL",
+    "options": [
+      {
+        "label": "CSV 參考區間",
+        "low": 7.0,
+        "high": 25.0
+      }
+    ],
+    "note": "",
+    "source": "台大醫院"
+  },
+  "wbc": {
+    "unit": "10³/µL",
+    "options": [
+      {
+        "label": "CSV 參考區間",
+        "low": 3.25,
+        "high": 9.16
+      }
+    ],
+    "note": "",
+    "source": "台大醫院"
+  },
+  "plt": {
+    "unit": "10³/µL",
+    "options": [
+      {
+        "label": "CSV 參考區間",
+        "low": 150.0,
+        "high": 378.0
+      }
+    ],
+    "note": "",
+    "source": "台大醫院"
+  },
+  "tsh": {
+    "unit": "mIU/L",
+    "options": [
+      {
+        "label": "CSV 參考區間",
+        "low": 0.17,
+        "high": 4.05
+      }
+    ],
+    "note": "台大單位μIU/mL(=mIU/L)",
+    "source": "台大醫院"
+  },
+  "rbc": {
+    "unit": "10⁶/µL",
+    "options": [
+      {
+        "label": "女性",
+        "low": 3.78,
+        "high": 5.25
+      },
+      {
+        "label": "男性",
+        "low": 4.21,
+        "high": 5.9
+      }
+    ],
+    "note": "請依本次報告適用條件選擇",
+    "source": "台大醫院（依提供的 CSV）"
+  },
+  "hb": {
+    "unit": "g/dL",
+    "options": [
+      {
+        "label": "女性",
+        "low": 11,
+        "high": 15.2
+      },
+      {
+        "label": "男性",
+        "low": 13.1,
+        "high": 17.2
+      }
+    ],
+    "note": "請依本次報告適用條件選擇",
+    "source": "台大醫院（依提供的 CSV）"
+  },
+  "ft4": {
+    "unit": "ng/dL",
+    "options": [
+      {
+        "label": "RIA 法",
+        "low": 0.89,
+        "high": 1.79
+      },
+      {
+        "label": "CIA 法",
+        "low": 0.7,
+        "high": 1.48
+      }
+    ],
+    "note": "檢驗方法不明時請勿套用",
+    "source": "台大醫院（依提供的 CSV）"
+  }
+}

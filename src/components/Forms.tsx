@@ -1,3 +1,4 @@
+import referenceCatalog from "../data/referenceCatalog.json";
 import { referenceDefaults } from "../lib/referenceDefaults";
 import { useState, type FormEvent } from "react";
 import { useStore } from "../lib/store";
@@ -26,7 +27,12 @@ export function RecordForm({
   close: () => void;
 }) {
   const records = useStore((s) => s.data.records);
-  const [limits] = useState(() => referenceDefaults(metric.id, records, record));
+  const [limits, setLimits] = useState(() => referenceDefaults(metric.id, records, record));
+  const [limitKey, setLimitKey] = useState(0);
+  const [showReference, setShowReference] = useState(false);
+  const [referenceChoice, setReferenceChoice] = useState("");
+  const catalog = referenceCatalog[metric.id as keyof typeof referenceCatalog];
+  const applicable = catalog?.unit === metric.unit ? catalog : undefined;
   const commit = useStore((s) => s.commit);
   const busy = useStore((s) => s.busy);
   const [error, setError] = useState("");
@@ -146,7 +152,22 @@ export function RecordForm({
         </label>
         {metric.group !== "日常健康" && (
           <>
-            <div className="form-grid">
+            <button type="button" className="text-button" onClick={() => { setShowReference(!showReference); setReferenceChoice(""); }}>套用參考值</button>
+            {showReference && <div className="form-note">
+              {applicable ? <>
+                <p>來源：使用者提供的 CSV／{applicable.source}。請核對本次報告；這不是個人治療目標。</p>
+                {applicable.note && <p>{applicable.note}</p>}
+                <select aria-label="參考值適用條件" value={referenceChoice} onChange={e => setReferenceChoice(e.target.value)}>
+                  <option value="">請確認適用區間</option>
+                  {applicable.options.map((o,i) => <option key={o.label} value={i}>{o.label}：{o.low}–{o.high} {metric.unit}</option>)}
+                </select>
+                <button type="button" className="button secondary" disabled={referenceChoice === ""} onClick={() => {
+                  const chosen = applicable.options[Number(referenceChoice)];
+                  setLimits({low:chosen.low,high:chosen.high}); setLimitKey(k=>k+1); setShowReference(false);
+                }}>確認帶入</button>
+              </> : <p>此項目尚無可直接套用的報告區間，或屬於空腹、年齡等條件及判定門檻。請沿用上次或依報告自行填寫，不會改動目前輸入值。</p>}
+            </div>}
+            <div className="form-grid" key={limitKey}>
               <label>
                 報告參考下限
                 <input
