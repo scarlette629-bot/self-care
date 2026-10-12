@@ -1,3 +1,4 @@
+import { referenceDefaults } from "../lib/referenceDefaults";
 import { useState, type FormEvent } from "react";
 import { useStore } from "../lib/store";
 import {
@@ -24,6 +25,8 @@ export function RecordForm({
   record?: HealthRecord;
   close: () => void;
 }) {
+  const records = useStore((s) => s.data.records);
+  const [limits] = useState(() => referenceDefaults(metric.id, records, record));
   const commit = useStore((s) => s.commit);
   const busy = useStore((s) => s.busy);
   const [error, setError] = useState("");
@@ -150,7 +153,7 @@ export function RecordForm({
                   name="low"
                   type="number"
                   step="any"
-                  defaultValue={record?.low}
+                  defaultValue={limits.low}
                 />
               </label>
               <label>
@@ -159,7 +162,7 @@ export function RecordForm({
                   name="high"
                   type="number"
                   step="any"
-                  defaultValue={record?.high}
+                  defaultValue={limits.high}
                 />
               </label>
             </div>
@@ -172,7 +175,7 @@ export function RecordForm({
               />
             </label>
             <p className="muted">
-              依當次報告填寫，可留空。範圍標記不代表疾病診斷。
+              新增時沿用同指標最近一次上下限，可修改或清空；請核對本次報告。範圍標記不代表疾病診斷。
             </p>
           </>
         )}
