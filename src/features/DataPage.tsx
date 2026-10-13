@@ -68,6 +68,8 @@ export function DataPage({ labs = false }: { labs?: boolean }) {
       "機構",
       "備註",
       "資料來源",
+      "下限不含等於",
+      "上限不含等於",
     ];
     const values = rows.map((r) => {
       const m = defs.find((x) => x.id === r.metricId)!;
@@ -83,6 +85,8 @@ export function DataPage({ labs = false }: { labs?: boolean }) {
         r.institution,
         r.note,
         r.source,
+        r.lowExclusive,
+        r.highExclusive,
       ];
     });
     download(

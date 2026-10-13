@@ -73,6 +73,12 @@ function dateValue(value: string) {
 function decodeCell(value: string) {
   return /^'[=+\-@\t\r]/.test(value) ? value.slice(1) : value;
 }
+function parseBoundary(value: string) {
+  if (!value) return undefined;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  throw new Error("邊界欄位請填 true 或 false");
+}
 function numberValue(raw: string, required = false) {
   const value = decodeCell(raw).trim();
   if (!value) {
@@ -97,6 +103,8 @@ export function measurementKey(r: HealthRecord) {
     r.low ?? null,
     r.high ?? null,
     r.institution,
+    r.lowExclusive ?? false,
+    r.highExclusive ?? false,
   ]);
 }
 export function urineKey(r: UrineReport) {
@@ -142,6 +150,7 @@ export function previewCSV(
           "情境",
           "參考下限",
           "參考上限",
+        "下限不含等於", "上限不含等於", "資料來源",
           "機構",
           "備註",
         ];
@@ -223,6 +232,8 @@ export function previewCSV(
           note: get("備註"),
           low: numberValue(get("參考下限")),
           high: numberValue(get("參考上限")),
+          lowExclusive: parseBoundary(get("下限不含等於")),
+          highExclusive: parseBoundary(get("上限不含等於")),
           institution: get("機構"),
           source: "demo-local",
         });

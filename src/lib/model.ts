@@ -26,6 +26,8 @@ export const recordSchema = z
     note: z.string().max(2000),
     low: z.number().finite().optional(),
     high: z.number().finite().optional(),
+    lowExclusive: z.boolean().optional(),
+    highExclusive: z.boolean().optional(),
     institution: z.string().max(200),
     source: z.literal("demo-local"),
   })
@@ -136,8 +138,8 @@ export const backupSchema = z
   });
 export type Backup = z.infer<typeof backupSchema>;
 export function reportStatus(r: HealthRecord) {
-  return (r.low !== undefined && r.value < r.low) ||
-    (r.high !== undefined && r.value > r.high)
+  return (r.low !== undefined && (r.lowExclusive ? r.value <= r.low : r.value < r.low)) ||
+    (r.high !== undefined && (r.highExclusive ? r.value >= r.high : r.value > r.high))
     ? "超出本次報告參考區間"
     : "—";
 }

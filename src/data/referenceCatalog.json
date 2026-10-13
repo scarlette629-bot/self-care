@@ -205,5 +205,100 @@
     ],
     "note": "檢驗方法不明時請勿套用",
     "source": "台大醫院（依提供的 CSV）"
+  },
+  "tc": {
+    "unit": "mg/dL",
+    "options": [
+      {
+        "label": "CSV 參考上限",
+        "high": 200,
+        "highExclusive": true
+      }
+    ],
+    "note": "只有上限，下限留白；等於上限亦不符合此參考條件。",
+    "source": "國民健康署（依提供的 CSV）"
+  },
+  "tg": {
+    "unit": "mg/dL",
+    "options": [
+      {
+        "label": "CSV 參考上限",
+        "high": 150,
+        "highExclusive": true
+      }
+    ],
+    "note": "只有上限，下限留白；等於上限亦不符合此參考條件。",
+    "source": "國民健康署（依提供的 CSV）"
+  },
+  "ldl": {
+    "unit": "mg/dL",
+    "options": [
+      {
+        "label": "CSV 參考上限",
+        "high": 130,
+        "highExclusive": true
+      }
+    ],
+    "note": "只有上限，下限留白；等於上限亦不符合此參考條件。",
+    "source": "國民健康署（依提供的 CSV）"
+  },
+  "hdl": {
+    "unit": "mg/dL",
+    "options": [
+      {
+        "label": "女性",
+        "low": 50
+      },
+      {
+        "label": "男性",
+        "low": 40
+      }
+    ],
+    "note": "只有下限，上限留白。",
+    "source": "國民健康署（依提供的 CSV）"
+  },
+  "afp": {
+    "unit": "ng/mL",
+    "options": [
+      {
+        "label": "CSV 參考上限",
+        "high": 20
+      }
+    ],
+    "note": "CSV 僅提供數值上限；請依報告核對邊界條件。",
+    "source": "台大醫院（依提供的 CSV）"
+  },
+  "cea": {
+    "unit": "ng/mL",
+    "options": [
+      {
+        "label": "CSV 參考上限",
+        "high": 5
+      }
+    ],
+    "note": "CSV 僅提供數值上限；請依報告核對邊界條件。",
+    "source": "台大醫院（依提供的 CSV）"
+  },
+  "ca199": {
+    "unit": "U/mL",
+    "options": [
+      {
+        "label": "CSV 參考上限",
+        "high": 37
+      }
+    ],
+    "note": "CSV 僅提供數值上限；請依報告核對邊界條件。",
+    "source": "台大醫院（依提供的 CSV）"
+  },
+  "ca125": {
+    "unit": "U/mL",
+    "options": [
+      {
+        "label": "CSV 參考上限",
+        "high": 35
+      }
+    ],
+    "note": "CSV 僅提供數值上限；請依報告核對邊界條件。",
+    "source": "台大醫院（依提供的 CSV）"
   }
 }

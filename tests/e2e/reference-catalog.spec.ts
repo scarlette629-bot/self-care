@@ -30,6 +30,26 @@ test('性別先選擇；判定門檻不當作閉區間套入',async({page})=>{
  await page.getByRole('button',{name:'新增紀錄',exact:true}).click();
  await page.getByLabel('報告參考上限').fill('6');
  await page.getByRole('button',{name:'套用參考值',exact:true}).click();
- await expect(page.getByText(/此項目尚無可直接套用/)).toBeVisible();
+ await expect(page.getByText(/此項目尚未提供可套用/)).toBeVisible();
  await expect(page.getByLabel('報告參考上限')).toHaveValue('6');
+});
+
+test('總膽固醇僅帶入上限，等於200標記且重新開啟保留',async({page})=>{
+ await page.goto('/labs?metric=tc');
+ await page.getByRole('button',{name:'新增紀錄',exact:true}).click();
+ await page.getByRole('spinbutton',{name:'數值（mg/dL）'}).fill('200');
+ await page.getByLabel('報告參考下限').fill('10');
+ await page.getByRole('button',{name:'套用參考值',exact:true}).click();
+ await page.getByLabel('參考值適用條件').selectOption('0');
+ await page.getByRole('button',{name:'確認帶入'}).click();
+ await expect(page.getByLabel('報告參考下限')).toHaveValue('');
+ await expect(page.getByLabel('報告參考上限')).toHaveValue('200');
+ await expect(page.getByLabel('報告參考上限')).toHaveAccessibleName('報告參考上限（<）');
+ await page.getByRole('button',{name:'儲存紀錄'}).click();
+ await expect(page.getByRole('dialog')).not.toBeVisible();
+ await page.reload();
+ await page.getByRole('button',{name:'歷史列表'}).click();
+ await expect(page.getByText('超出本次報告參考區間',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'新增紀錄',exact:true}).click();
+ await expect(page.getByLabel('報告參考上限')).toHaveAccessibleName('報告參考上限（<）');
 });

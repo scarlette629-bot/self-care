@@ -1,4 +1,4 @@
-import referenceCatalog from "../data/referenceCatalog.json";
+import referenceCatalogData from "../data/referenceCatalog.json";
 import { referenceDefaults } from "../lib/referenceDefaults";
 import { useState, type FormEvent } from "react";
 import { useStore } from "../lib/store";
@@ -13,6 +13,9 @@ import {
   type Metric,
 } from "../lib/model";
 import { Modal } from "./ui";
+type ReferenceOption = {label:string;low?:number;high?:number;lowExclusive?:boolean;highExclusive?:boolean};
+const referenceCatalog: Record<string,{unit:string;options:ReferenceOption[];note:string;source:string}> = referenceCatalogData;
+const rangeLabel = (o: Omit<ReferenceOption,"label">) => [o.low !== undefined ? `${o.lowExclusive ? ">" : "≥"}${o.low}` : "", o.high !== undefined ? `${o.highExclusive ? "<" : "≤"}${o.high}` : ""].filter(Boolean).join("、");
 const iso = (v: FormDataEntryValue | null) =>
   new Date(String(v) + "+08:00").toISOString();
 const num = (v: FormDataEntryValue | null) =>
@@ -51,6 +54,8 @@ export function RecordForm({
         institution: String(f.get("institution") ?? ""),
         low: num(f.get("low")),
         high: num(f.get("high")),
+        lowExclusive: num(f.get("low")) === undefined ? undefined : limits.lowExclusive,
+        highExclusive: num(f.get("high")) === undefined ? undefined : limits.highExclusive,
         source: "demo-local",
       });
       if (metric.secondary && row.secondary === undefined)
@@ -159,17 +164,17 @@ export function RecordForm({
                 {applicable.note && <p>{applicable.note}</p>}
                 <select aria-label="參考值適用條件" value={referenceChoice} onChange={e => setReferenceChoice(e.target.value)}>
                   <option value="">請確認適用區間</option>
-                  {applicable.options.map((o,i) => <option key={o.label} value={i}>{o.label}：{o.low}–{o.high} {metric.unit}</option>)}
+                  {applicable.options.map((o,i) => <option key={o.label} value={i}>{o.label}：{rangeLabel(o)} {metric.unit}</option>)}
                 </select>
                 <button type="button" className="button secondary" disabled={referenceChoice === ""} onClick={() => {
                   const chosen = applicable.options[Number(referenceChoice)];
-                  setLimits({low:chosen.low,high:chosen.high}); setLimitKey(k=>k+1); setShowReference(false);
+                  setLimits({low:chosen.low,high:chosen.high,lowExclusive:chosen.lowExclusive,highExclusive:chosen.highExclusive}); setLimitKey(k=>k+1); setShowReference(false);
                 }}>確認帶入</button>
-              </> : <p>此項目尚無可直接套用的報告區間，或屬於空腹、年齡等條件及判定門檻。請沿用上次或依報告自行填寫，不會改動目前輸入值。</p>}
+              </> : <p>此項目尚未提供可套用的參考值。請沿用上次或依報告自行填寫，不會改動目前輸入值。</p>}
             </div>}
             <div className="form-grid" key={limitKey}>
               <label>
-                報告參考下限
+                報告參考下限{limits.lowExclusive ? "（>）" : ""}
                 <input
                   name="low"
                   type="number"
@@ -178,7 +183,7 @@ export function RecordForm({
                 />
               </label>
               <label>
-                報告參考上限
+                報告參考上限{limits.highExclusive ? "（<）" : ""}
                 <input
                   name="high"
                   type="number"
