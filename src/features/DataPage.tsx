@@ -1,7 +1,9 @@
+import { useSearchParams } from "react-router-dom";
+import { HomeMetricToggle } from "../components/HomeMetricToggle";
 import { CsvImport } from "../components/CsvImport";
 import { Urine } from "./Urine";
 import { labGroups } from "../data/metrics";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "../lib/store";
 import { useDefinitions } from "../data/useDefinitions";
 import { PageHeader } from "../components/health";
@@ -23,6 +25,7 @@ import {
 import { RecordForm } from "../components/Forms";
 import { MetricPicker } from "../components/MetricPicker";
 export function DataPage({ labs = false }: { labs?: boolean }) {
+  const [params] = useSearchParams();
   const allDefs = useDefinitions();
   const { data, commit } = useStore();
   const defs = allDefs.filter(
@@ -30,15 +33,19 @@ export function DataPage({ labs = false }: { labs?: boolean }) {
       (labs ? m.group !== "日常健康" : m.group === "日常健康") &&
       (m.id !== "urine" || data.records.some((r) => r.metricId === "urine")),
   );
-  const [selection, setSelection] = useState(
-    new URLSearchParams(location.search).get("metric") ?? "all",
-  );
-  const [group, setGroup] = useState(
-    new URLSearchParams(location.search).get("group") ?? "all",
-  );
+  const [selection, setSelection] = useState(params.get("metric") ?? "all");
+  const [group, setGroup] = useState(params.get("group") ?? "all");
   const [search, setSearch] = useState("");
-  const [mode, setMode] = useState("cards");
+  const [mode, setMode] = useState(
+    params.get("view") === "history" ? "list" : "cards",
+  );
   const [days, setDays] = useState(0);
+  useEffect(() => {
+    setSelection(params.get("metric") ?? "all");
+    setGroup(params.get("group") ?? "all");
+    setMode(params.get("view") === "history" ? "list" : "cards");
+    setSearch("");
+  }, [params]);
   const [form, setForm] = useState<{ metric: Metric; record?: HealthRecord }>();
   const [remove, setRemove] = useState<HealthRecord>();
   const [picker, setPicker] = useState(false);
@@ -225,6 +232,14 @@ export function DataPage({ labs = false }: { labs?: boolean }) {
       </p>
       {mode === "list" ? (
         <section className="panel">
+          <div className="home-selection-list">
+            {selected.map((m) => (
+              <div key={m.id}>
+                <span>{m.name}</span>
+                <HomeMetricToggle metric={m} />
+              </div>
+            ))}
+          </div>
           <RecordsList
             rows={rows}
             defs={defs}
@@ -256,6 +271,7 @@ export function DataPage({ labs = false }: { labs?: boolean }) {
                     <MetricCard
                       key={m.id}
                       m={m}
+                      pinnable
                       rows={rows}
                       open={() => setForm({ metric: m })}
                       detail={() => {

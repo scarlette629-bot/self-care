@@ -1,3 +1,4 @@
+import { HomeMetricToggle } from "../components/HomeMetricToggle";
 import { SecureBackup } from "../components/SecureBackup";
 import { useState } from "react";
 import { useStore } from "../lib/store";
@@ -116,30 +117,15 @@ export function Profile() {
         </section>
         <section className="panel">
           <SectionTitle title="首頁指標" />
-          <p className="muted">勾選要顯示的指標，首頁顯示前四項。</p>
-          {defs
-            .filter((m) => m.group === "日常健康")
-            .map((m) => (
-              <label className="toggle-row" key={m.id}>
-                <span>{m.name}</span>
-                <input
-                  type="checkbox"
-                  checked={!data.settings.hidden.includes(m.id)}
-                  onChange={(e) => {
-                    const visible = e.currentTarget.checked;
-                    void commit((b) => ({
-                      ...b,
-                      settings: {
-                        ...b.settings,
-                        hidden: visible
-                          ? b.settings.hidden.filter((id) => id !== m.id)
-                          : [...b.settings.hidden, m.id],
-                      },
-                    })).catch(() => {});
-                  }}
-                />
-              </label>
-            ))}
+          <p className="muted">
+            選擇日常健康、自訂及檢驗指標，可同時顯示多項。取消只影響首頁顯示。
+          </p>
+          {defs.map((m) => (
+            <div className="toggle-row" key={m.id}>
+              <span>{m.name}</span>
+              <HomeMetricToggle metric={m} />
+            </div>
+          ))}
         </section>
         <section className="panel">
           <SectionTitle title="資料管理" />

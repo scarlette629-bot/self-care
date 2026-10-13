@@ -90,6 +90,17 @@ export const settingsSchema = z.object({
   dark: z.boolean(),
   font: z.number().min(0.9).max(1.3),
   hidden: z.array(z.string()),
+  homeMetricIds: z.array(z.string()).optional(),
+  homeTrendMetric: z.string().optional(),
+  homeTrendDays: z
+    .union([
+      z.literal(0),
+      z.literal(7),
+      z.literal(30),
+      z.literal(90),
+      z.literal(365),
+    ])
+    .optional(),
   timezone: z.literal("Asia/Taipei"),
 });
 export type Settings = z.infer<typeof settingsSchema>;
@@ -138,8 +149,10 @@ export const backupSchema = z
   });
 export type Backup = z.infer<typeof backupSchema>;
 export function reportStatus(r: HealthRecord) {
-  return (r.low !== undefined && (r.lowExclusive ? r.value <= r.low : r.value < r.low)) ||
-    (r.high !== undefined && (r.highExclusive ? r.value >= r.high : r.value > r.high))
+  return (r.low !== undefined &&
+    (r.lowExclusive ? r.value <= r.low : r.value < r.low)) ||
+    (r.high !== undefined &&
+      (r.highExclusive ? r.value >= r.high : r.value > r.high))
     ? "超出本次報告參考區間"
     : "—";
 }
