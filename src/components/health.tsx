@@ -1,3 +1,5 @@
+import { HomeMetricToggle } from "./HomeMetricToggle";
+import { LabStatusBadge } from "./LabStatusBadge";
 import { labGroups } from "../data/metrics";
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Pencil, Trash2 } from "lucide-react";
@@ -36,7 +38,9 @@ export function MetricCard({
   open,
   detail,
   rows,
+  pinnable = false,
 }: {
+  pinnable?: boolean;
   m: Metric;
   open: () => void;
   detail: () => void;
@@ -80,7 +84,9 @@ export function MetricCard({
         )}
       </button>
       <div className="metric-bottom">
-        <small>{r ? date(r.at) : "從第一筆記錄開始"}</small>
+        <small>
+          {r ? formatTaipei(r.at, "yyyy/MM/dd HH:mm") : "從第一筆記錄開始"}
+        </small>
         {r && prev && (
           <span className="delta">
             {r.value - prev.value > 0 ? "+" : ""}
@@ -88,6 +94,11 @@ export function MetricCard({
           </span>
         )}
       </div>
+      {r &&
+        (m.group !== "日常健康" ||
+          r.low !== undefined ||
+          r.high !== undefined) && <LabStatusBadge record={r} metric={m} />}
+      {pinnable && <HomeMetricToggle metric={m} />}
       <div className="mini-bars" aria-hidden="true">
         {records
           .slice(0, 7)
@@ -138,6 +149,11 @@ export function RecordsList({
                   {r.institution && ` · ${r.institution}`}
                 </small>
                 {r.note && <small className="record-note">{r.note}</small>}
+                {(m.group !== "日常健康" ||
+                  r.low !== undefined ||
+                  r.high !== undefined) && (
+                  <LabStatusBadge record={r} metric={m} />
+                )}
                 {reportStatus(r) !== "—" && (
                   <span className="report-warning">{reportStatus(r)}</span>
                 )}

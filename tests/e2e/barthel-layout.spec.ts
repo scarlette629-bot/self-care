@@ -1,7 +1,8 @@
+import { APP_VERSION } from "../../src/lib/version";
 import { test, expect } from "@playwright/test";
 test("版本與巴氏選項三欄實際對齊", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByLabel("軟體版本")).toContainText("v.0.2");
+  await expect(page.getByLabel("軟體版本")).toContainText(APP_VERSION);
   await page.goto("/aging?kind=日常生活功能");
   await page.getByRole("button", { name: "＋ 新增評估" }).click();
   for (const width of [360, 390, 430]) {

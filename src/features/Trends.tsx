@@ -1,3 +1,4 @@
+import { LabStatusBadge } from "../components/LabStatusBadge";
 import { useState } from "react";
 import { useStore } from "../lib/store";
 import { useDefinitions } from "../data/useDefinitions";
@@ -169,7 +170,11 @@ export function Trends() {
               </option>
             ))}
           </select>
-          <span className="muted">每日平均 · 同單位比較 · 缺漏不補零</span>
+          <span className="muted">
+            {chosen.some((m) => m.group !== "日常健康")
+              ? "檢驗原始值 · 每筆依當次報告判讀"
+              : "每日平均 · 同單位比較 · 缺漏不補零"}
+          </span>
         </div>
         <div className="trend-summary">
           <div>
@@ -200,6 +205,7 @@ export function Trends() {
                   <th>指標</th>
                   <th>數值</th>
                   <th>參考區間</th>
+                  <th>狀態</th>
                 </tr>
               </thead>
               <tbody>
@@ -220,6 +226,11 @@ export function Trends() {
                         <td>
                           {r.low ?? "—"} – {r.high ?? "—"}
                         </td>
+                        <td>
+                          {m.group !== "日常健康" && (
+                            <LabStatusBadge record={r} metric={m} />
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
@@ -231,8 +242,11 @@ export function Trends() {
         <div className="chart-note">
           <Leaf size={20} />
           <p>
-            期間共記錄 {filtered.length}{" "}
-            次。圖表呈現各日平均值的變化，不代表疾病風險或醫療診斷。
+            期間共記錄 {filtered.length} 次。
+            {chosen.some((m) => m.group !== "日常健康")
+              ? "檢驗圖表呈現每筆原始數值與當次報告判讀。"
+              : "圖表呈現各日平均值的變化。"}
+            不代表疾病風險或醫療診斷。
           </p>
         </div>
       </section>

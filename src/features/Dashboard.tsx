@@ -1,3 +1,7 @@
+import { homeMetricIds, latestRecords } from "../lib/dashboard";
+import { labStatus } from "../lib/labStatus";
+import { LabStatusBadge } from "../components/LabStatusBadge";
+import { formatValue } from "../lib/model";
 import { CareReminderList } from "./Preventive";
 import { useState } from "react";
 import { useStore } from "../lib/store";
@@ -24,27 +28,34 @@ import { RecordForm } from "../components/Forms";
 import { TrendChart } from "../components/TrendChart";
 import { MetricPicker } from "../components/MetricPicker";
 export function Dashboard() {
-  const { data, commit } = useStore();
+  const { data, commit, busy } = useStore();
   const defs = useDefinitions();
   const navigate = useNavigate();
   const [record, setRecord] = useState<Metric>();
   const [picker, setPicker] = useState(false);
-  const [period, setPeriod] = useState(7);
+  const period = data.settings.homeTrendDays ?? 7;
+  const trendMetric =
+    defs.find((m) => m.id === data.settings.homeTrendMetric) ??
+    defs.find((m) => m.id === "bp")!;
+  const latest = latestRecords(data.records);
+  const abnormalLabs = defs
+    .filter((m) => m.group !== "日常健康")
+    .flatMap((m) => {
+      const r = latest.get(m.id);
+      return r && ["high", "low", "critical"].includes(labStatus(r, m))
+        ? [{ m, r }]
+        : [];
+    });
   const today = data.records.filter(
     (r) => taipeiDay(r.at) === taipeiDay(new Date()),
   ).length;
   const pending = data.reminders
     .filter((r) => !r.done)
     .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
-  const visible = defs
-    .filter(
-      (m) => m.group === "日常健康" && !data.settings.hidden.includes(m.id),
-    )
-    .slice(0, 4);
-  const trendRows = withinDays(
-    data.records.filter((r) => r.metricId === "bp"),
-    period,
-  );
+  const selectedIds = new Set(homeMetricIds(data.settings, defs));
+  const visible = defs.filter((m) => selectedIds.has(m.id));
+  const metricRows = data.records.filter((r) => r.metricId === trendMetric.id);
+  const trendRows = period === 0 ? metricRows : withinDays(metricRows, period);
   return (
     <>
       <PageHeader
@@ -157,13 +168,17 @@ export function Dashboard() {
                 key={m.id}
                 m={m}
                 open={() => setRecord(m)}
-                detail={() => navigate(`/data?metric=${m.id}`)}
+                detail={() =>
+                  navigate(
+                    `${m.group === "日常健康" ? "/data" : "/labs"}?metric=${encodeURIComponent(m.id)}&view=history`,
+                  )
+                }
               />
             ))}
           </div>
           {!visible.length && (
             <Empty
-              title="首頁指標已隱藏"
+              title="尚未選擇首頁指標"
               action={<NavLink to="/profile">設定顯示指標</NavLink>}
             />
           )}
@@ -183,28 +198,86 @@ export function Dashboard() {
             />
             <div className="trend-toolbar">
               <span className="chart-name">
-                <BadgeIcon name="stethoscope" color="#dd647b" />
+                <BadgeIcon name={trendMetric.icon} color={trendMetric.color} />
                 <span>
-                  <b>血壓趨勢</b>
-                  <small>共 {trendRows.length} 筆紀錄 · mmHg</small>
+                  <select
+                    aria-label="首頁趨勢指標"
+                    disabled={busy}
+                    value={trendMetric.id}
+                    onChange={(e) => {
+                      const homeTrendMetric = e.currentTarget.value;
+                      void commit((b) => ({
+                        ...b,
+                        settings: { ...b.settings, homeTrendMetric },
+                      })).catch(() => {});
+                    }}
+                  >
+                    {defs.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                  <small>
+                    共 {trendRows.length} 筆紀錄 · {trendMetric.unit}
+                  </small>
                 </span>
               </span>
               <div className="segmented">
-                {[7, 30, 90].map((n) => (
+                {[7, 30, 90, 365, 0].map((n) => (
                   <button
                     key={n}
                     className={period === n ? "active" : ""}
-                    onClick={() => setPeriod(n)}
+                    aria-pressed={period === n}
+                    disabled={busy}
+                    onClick={() =>
+                      void commit((b) => ({
+                        ...b,
+                        settings: {
+                          ...b.settings,
+                          homeTrendDays: n as 0 | 7 | 30 | 90 | 365,
+                        },
+                      })).catch(() => {})
+                    }
                   >
-                    {n} 天
+                    {n === 0 ? "全部" : n === 365 ? "1 年" : `${n} 天`}
                   </button>
                 ))}
               </div>
             </div>
-            <TrendChart rows={trendRows} definitions={[defs[0]]} height={220} />
+            <TrendChart
+              rows={trendRows}
+              definitions={[trendMetric]}
+              height={220}
+            />
           </section>
         </div>
         <div className="dashboard-secondary">
+          <section className="panel lab-summary" aria-label="檢驗異常摘要">
+            <SectionTitle title="檢驗異常摘要" eyebrow="LATEST LAB RESULTS" />
+            <p className="muted">各項最新報告 · 依當次參考區間判讀</p>
+            {abnormalLabs.length ? (
+              abnormalLabs.map(({ m, r }) => (
+                <NavLink
+                  key={m.id}
+                  to={`/labs?metric=${encodeURIComponent(m.id)}&view=history`}
+                  className="lab-summary-item"
+                >
+                  <strong>{m.name}</strong>
+                  <span>
+                    {formatValue(r, m)} {m.unit}
+                  </span>
+                  <small>{format(r.at, "yyyy/MM/dd")}</small>
+                  <LabStatusBadge record={r} metric={m} />
+                </NavLink>
+              ))
+            ) : (
+              <p className="quiet-empty">目前沒有已判定的異常檢驗</p>
+            )}
+            <p className="form-note">
+              無適用參考區間的結果顯示未判定。目前未設定經審核的危急值門檻。
+            </p>
+          </section>
           <section className="panel next-panel">
             <SectionTitle
               title="接下來要做的事"
